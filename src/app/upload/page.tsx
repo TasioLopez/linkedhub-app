@@ -62,7 +62,7 @@ export default function UploadPage() {
 
   return (
     <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4 text-center">📤 Upload Resource</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">📤 Upload Your Resource</h1>
       <form onSubmit={handleUpload} className="space-y-4">
         <div>
           <label className="block mb-1 font-medium">Title</label>
