@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 
 export default function UploadPage() {
@@ -27,25 +27,25 @@ export default function UploadPage() {
       const fileName = `${uuidv4()}.${fileExt}`
       const filePath = `uploads/${fileName}`
 
-      // Upload file to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('downloads')
         .upload(filePath, file)
 
       if (uploadError) throw uploadError
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data } = supabase.storage
         .from('downloads')
         .getPublicUrl(filePath)
 
-      // Insert metadata into database
+      const publicUrl = data.publicUrl
+
       const { error: dbError } = await supabase.from('resources').insert([
         {
           resource_title: title,
           resource_desc: desc,
           file_url: publicUrl,
-          creator_email: 'test@email.com', // Required field in your table
-          color_theme: 'standard', // Optional default
+          creator_email: 'test@email.com', // Required
+          color_theme: 'standard',         // Default
         },
       ])
 
@@ -54,7 +54,7 @@ export default function UploadPage() {
       router.push('/')
     } catch (err: any) {
       console.error('Upload error:', err.message)
-      alert('Something went wrong')
+      alert(`Upload failed: ${err.message}`)
     } finally {
       setLoading(false)
     }
