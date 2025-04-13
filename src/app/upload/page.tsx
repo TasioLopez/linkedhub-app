@@ -17,19 +17,18 @@ export default function UploadPage() {
         {
           resource_title: title,
           resource_desc: desc,
-        }
+        },
       ])
 
-      if (error) {
-        throw error
-      }
+      if (error) throw error
 
       alert('Upload successful!')
       setTitle('')
       setDesc('')
-    } catch (err: any) {
-      console.error('Error uploading:', err)
-      alert(err.message || 'Unknown error occurred')
+    } catch (err: unknown) {
+      const error = err as { message?: string }
+      console.error('Upload error:', error)
+      alert(error?.message || 'Unknown error occurred')
     } finally {
       setLoading(false)
     }
@@ -49,6 +48,7 @@ export default function UploadPage() {
             required
           />
         </div>
+
         <div>
           <label className="block mb-1 font-medium">Description</label>
           <textarea
@@ -58,6 +58,7 @@ export default function UploadPage() {
             onChange={(e) => setDesc(e.target.value)}
           />
         </div>
+
         <button
           type="submit"
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
