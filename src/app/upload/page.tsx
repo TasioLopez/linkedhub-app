@@ -27,6 +27,7 @@ export default function UploadPage() {
       const fileName = `${uuidv4()}.${fileExt}`
       const filePath = `uploads/${fileName}`
 
+      // Upload file to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('downloads')
         .upload(filePath, file)
@@ -37,11 +38,14 @@ export default function UploadPage() {
         .from('downloads')
         .getPublicUrl(filePath)
 
+      // Insert metadata into database
       const { error: dbError } = await supabase.from('resources').insert([
         {
           resource_title: title,
           resource_desc: desc,
           file_url: publicUrl,
+          creator_email: 'test@email.com', // Required field in your table
+          color_theme: 'standard', // Optional default
         },
       ])
 
