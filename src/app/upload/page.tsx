@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
@@ -11,6 +11,12 @@ export default function UploadPage() {
   const [desc, setDesc] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    // Confirm your env key is loaded
+    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+  }, [])
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,6 +33,7 @@ export default function UploadPage() {
       const fileName = `${uuidv4()}.${fileExt}`
       const filePath = `uploads/${fileName}`
 
+      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('downloads')
         .upload(filePath, file)
@@ -37,21 +44,30 @@ export default function UploadPage() {
         .from('downloads')
         .getPublicUrl(filePath)
 
-      const publicUrl = data.publicUrl
+      const publicUrl = data?.publicUrl
+      if (!publicUrl) throw new Error('Failed to generate public URL')
 
-      const { error: dbError } = await supabase.from('resources').insert([
-        {
-          resource_title: title,
-          resource_desc: desc,
-          file_url: publicUrl
-        },
-      ])
+      // Insert into database (requires `creator_email`)
+      const { error: dbError, data: insertData } = await supabase
+        .from('resources')
+        .insert([
+          {
+            resource_title: title,
+            resource_desc: desc,
+            file_url: publicUrl,
+            creator_email: 'test@email.com',  // must be filled
+            color_theme: 'standard',
+          }
+        ])
+        .select()
+
+      console.log('Insert result:', insertData)
 
       if (dbError) throw dbError
 
       router.push('/')
     } catch (err: any) {
-      console.error('Upload error:', err.message)
+      console.error('Upload error:', err)
       alert(`Upload failed: ${err.message}`)
     } finally {
       setLoading(false)
