@@ -66,13 +66,16 @@ export default function UploadPage() {
       if (dbError) throw dbError
 
       router.push('/')
-    } catch (err: any) {
-      console.error('Upload error:', err)
-      alert(`Upload failed: ${err.message}`)
-    } finally {
-      setLoading(false)
-    }
-  }
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error('Upload error:', err.message)
+          alert(`Upload failed: ${err.message}`)
+        } else {
+          console.error('Unexpected error', err)
+          alert('Unexpected error occurred')
+        }
+      }
+      
 
   return (
     <div className="max-w-xl mx-auto p-6">
