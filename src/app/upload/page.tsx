@@ -43,9 +43,7 @@ export default function UploadPage() {
         {
           resource_title: title,
           resource_desc: desc,
-          file_url: publicUrl,
-          creator_email: 'test@email.com', // Required
-          color_theme: 'standard',         // Default
+          file_url: publicUrl
         },
       ])
 
