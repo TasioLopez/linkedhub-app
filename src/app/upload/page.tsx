@@ -13,12 +13,11 @@ export default function UploadPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // Confirm your env key is loaded
     console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
     console.log('Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
   }, [])
 
-  const handleUpload = async (e: React.FormEvent) => {
+  const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     if (!file || !title) {
@@ -33,21 +32,16 @@ export default function UploadPage() {
       const fileName = `${uuidv4()}.${fileExt}`
       const filePath = `uploads/${fileName}`
 
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('downloads')
         .upload(filePath, file)
 
       if (uploadError) throw uploadError
 
-      const { data } = supabase.storage
-        .from('downloads')
-        .getPublicUrl(filePath)
-
+      const { data } = supabase.storage.from('downloads').getPublicUrl(filePath)
       const publicUrl = data?.publicUrl
-      if (!publicUrl) throw new Error('Failed to generate public URL')
+      if (!publicUrl) throw new Error('Failed to get public URL')
 
-      // Insert into database (requires `creator_email`)
       const { error: dbError, data: insertData } = await supabase
         .from('resources')
         .insert([
@@ -55,27 +49,29 @@ export default function UploadPage() {
             resource_title: title,
             resource_desc: desc,
             file_url: publicUrl,
-            creator_email: 'test@email.com',  // must be filled
+            creator_email: 'test@email.com',
             color_theme: 'standard',
           }
         ])
         .select()
 
-      console.log('Insert result:', insertData)
+      console.log('Inserted resource:', insertData)
 
       if (dbError) throw dbError
 
       router.push('/')
     } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.error('Upload error:', err.message)
-          alert(`Upload failed: ${err.message}`)
-        } else {
-          console.error('Unexpected error', err)
-          alert('Unexpected error occurred')
-        }
+      if (err instanceof Error) {
+        console.error('Upload error:', err.message)
+        alert(`Upload failed: ${err.message}`)
+      } else {
+        console.error('Unknown upload error:', err)
+        alert('Something went wrong')
       }
-      
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="max-w-xl mx-auto p-6">
